@@ -17,6 +17,12 @@ go run ./cmd/api
 
 Listens on **http://localhost:8080** by default. Override with `LISTEN_ADDR` (e.g. `LISTEN_ADDR=:3000 ./weather-api`).
 
+### Kubernetes
+
+- **Docker:** `make docker-build` (override `IMAGE=registry/repo:tag`) or `docker build -t weather-api:local .`
+- **Cluster:** `kubectl apply -k deploy/k8s` (uses [deploy/k8s/base](deploy/k8s/base)).
+- **Local cluster:** enable Kubernetes (Docker Desktop) or `minikube start`, then `make k8s-local-up`. If you see **`ErrImageNeverPull`**, the cluster doesn’t see `docker build` images — run **`kind load docker-image weather-api:local --name kind`** (or `KIND_CLUSTER=… make k8s-local-maybe-load`). Details: [deploy/k8s/README.md](deploy/k8s/README.md).
+
 ### Where `WEATHER_API_KEY` comes from (Weather Company / IBM)
 
 That key is **not** from weather.gov, not from this repo, and not something you can “look up” online for free. It is issued **only** when you use **IBM’s The Weather Company Data APIs** (commercial product; `api.weather.com`).

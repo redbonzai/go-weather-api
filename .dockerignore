@@ -1,0 +1,11 @@
+bin/
+.git/
+.github/
+.cursor/
+*.md
+deploy/
+**/*_test.go
+list.out
+list.err
+.DS_Store
+**/assets/

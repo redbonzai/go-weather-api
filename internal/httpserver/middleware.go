@@ -86,6 +86,13 @@ func Metrics(metric *obs.Metrics) Middleware {
 func RateLimit(limiter *ratelimit.IPLimiter) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			// Never rate-limit probes or scrapes: kubelet / Prometheus often share one source IP
+			// and would get 429, blocking readiness (Kubernetes) or missing metrics.
+			switch request.URL.Path {
+			case "/health", "/metrics":
+				next.ServeHTTP(writer, request)
+				return
+			}
 			ip := clientIP(request)
 			if !limiter.Allow(ip) {
 				writer.Header().Set("Retry-After", "1")

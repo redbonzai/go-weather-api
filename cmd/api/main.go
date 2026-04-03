@@ -138,18 +138,17 @@ func main() {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	// stop background workers first
-	jobQ.Stop()
-
+	// Stop accepting HTTP first so SIGTERM (Kubernetes) does not race with new /events enqueueing work.
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		logger.Fatalf("shutdown error: %v", err)
+		logger.Printf("shutdown: http server: %v", err)
 	}
+	jobQ.Stop()
 
 	logger.Println("shutdown complete")
 }
 
 func envOrDefault(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
+	if v := strings.TrimSpace(os.Getenv(key)); v != "" {
 		return v
 	}
 	return fallback

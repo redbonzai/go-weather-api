@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-api
+spec:
+  replicas: 1
+  # Avoid overlapping old/new pods during rollout (Docker Desktop often hangs on "old pending termination").
+  strategy:
+    $patch: replace
+    type: Recreate
+  template:
+    spec:
+      terminationGracePeriodSeconds: 20
+      containers:
+        - name: weather-api
+          image: weather-api:local
+          imagePullPolicy: Never
+          # Docker Desktop can be slow to schedule; avoid CPU/memory starvation during startup.
+          resources:
+            $patch: replace
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+          # Hold liveness/readiness until /health works (up to ~60s).
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            failureThreshold: 30
+            periodSeconds: 2
+            timeoutSeconds: 3
